@@ -1,0 +1,185 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      Role     @default(ENTREPRENEUR)
+  bio       String?
+  skills    String[] // Array of skills
+  location  String?
+  avatar    String?
+  verified  Boolean  @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  ideas               Idea[]
+  feedbacks           Feedback[]
+  sentConnections     Connection[] @relation("Requester")
+  receivedConnections Connection[] @relation("Receiver")
+  uploadedResources   Resource[]
+  mentorBookings      Booking[]    @relation("MentorBookings")
+  menteeBookings      Booking[]    @relation("MenteeBookings")
+  pitches             Pitch[]
+  notifications       Notification[]
+
+  @@map("users")
+}
+
+model Idea {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  category    String
+  targetMarket String?
+  challenges  String?
+  stage       String   @default("CONCEPT") // CONCEPT, VALIDATION, MVP, GROWTH
+  createdBy   String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  user      User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  feedbacks Feedback[]
+
+  @@map("ideas")
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  ideaId    String
+  userId    String
+  comment   String
+  rating    Int?     @default(0) // 1-5 stars
+  createdAt DateTime @default(now())
+
+  // Relations
+  idea Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("feedbacks")
+}
+
+model Connection {
+  id          String            @id @default(uuid())
+  requesterId String
+  receiverId  String
+  status      ConnectionStatus  @default(PENDING)
+  message     String?
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+
+  // Relations
+  requester User @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver  User @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+
+  @@unique([requesterId, receiverId])
+  @@map("connections")
+}
+
+model Resource {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  fileUrl     String
+  category    String   // "PITCH_DECK", "NDA", "BMC", "LEGAL", etc.
+  uploadedBy  String
+  isPublic    Boolean  @default(true)
+  downloads   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  // Relations
+  uploader User @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@map("resources")
+}
+
+model Booking {
+  id        String        @id @default(uuid())
+  mentorId  String
+  menteeId  String
+  date      DateTime
+  status    BookingStatus @default(PENDING)
+  notes     String?
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  // Relations
+  mentor User @relation("MentorBookings", fields: [mentorId], references: [id], onDelete: Cascade)
+  mentee User @relation("MenteeBookings", fields: [menteeId], references: [id], onDelete: Cascade)
+
+  @@map("bookings")
+}
+
+model Pitch {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  fileUrl     String
+  uploadedBy  String
+  isPublic    Boolean  @default(false)
+  views       Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  uploader User @relation(fields: [uploadedBy], references: [id], onDelete: Cascade)
+
+  @@map("pitches")
+}
+
+model Notification {
+  id        String           @id @default(uuid())
+  userId    String
+  type      NotificationType
+  title     String
+  message   String
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
+
+enum Role {
+  ENTREPRENEUR
+  MENTOR
+  ADMIN
+}
+
+enum ConnectionStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  COMPLETED
+  CANCELLED
+}
+
+enum NotificationType {
+  CONNECTION_REQUEST
+  CONNECTION_ACCEPTED
+  BOOKING_CONFIRMED
+  BOOKING_CANCELLED
+  FEEDBACK_RECEIVED
+  PITCH_VIEWED
+  GENERAL
+}
