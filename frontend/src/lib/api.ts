@@ -51,6 +51,7 @@ export const authAPI = {
   getMe: () => api.get('/auth/me'),
   updateProfile: (data: any) => api.put('/auth/profile', data),
   forgotPassword: (data: any) => api.post('/auth/forgot-password', data),
+  googleAuth: (data: { credential: string; role?: string }) => api.post('/auth/google', data),
 };
 
 export const ideaAPI = {
@@ -120,6 +121,24 @@ export const notificationAPI = {
   markAsRead: (id: string) => api.put(`/notifications/${id}/read`),
   markAllAsRead: () => api.put('/notifications/mark-all-read'),
   deleteNotification: (id: string) => api.delete(`/notifications/${id}`),
+};
+
+export const validationAPI = {
+  runValidation: (ideaId: string) => api.post('/validate-idea', { ideaId }),
+  getHistory: (ideaId: string) => api.get(`/validate-idea/${ideaId}/history`),
+};
+
+export const roadmapAPI = {
+  generate: (ideaId: string) => api.post('/roadmap/generate', { ideaId }),
+  getRoadmap: (ideaId: string) => api.get(`/roadmap/${ideaId}`),
+  updateMilestone: (id: string, completed: boolean) =>
+    api.put(`/roadmap/milestone/${id}`, { completed }),
+  exportPDF: (ideaId: string) =>
+    api.get(`/roadmap/${ideaId}/export`, { responseType: 'blob' }),
+};
+
+export const dashboardAPI = {
+  getDashboardData: () => api.get('/dashboard'),
 };
 
 export default api;

@@ -1,27 +1,21 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useDispatch } from 'react-redux'
-import { AppDispatch } from '@/redux/store'
-import { getCurrentUser, setUser } from '@/redux/slices/authSlice'
-import { getUserFromStorage, isAuthenticated } from '@/lib/auth'
+import { useDispatch, useSelector } from 'react-redux'
+import { AppDispatch, RootState } from '@/redux/store'
+import { getCurrentUser } from '@/redux/slices/authSlice'
+import { isAuthenticated } from '@/lib/auth'
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch<AppDispatch>()
+  const { isAuthenticated: reduxAuth } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
-    // Check if user is authenticated and get user data
-    if (isAuthenticated()) {
-      // First, try to get user from localStorage for immediate UI update
-      const storedUser = getUserFromStorage()
-      if (storedUser) {
-        dispatch(setUser(storedUser))
-      }
-      
-      // Then fetch fresh user data from API
+    // Refresh user data from API if we have a token, but don't block on it
+    if (isAuthenticated() || reduxAuth) {
       dispatch(getCurrentUser())
     }
-  }, [dispatch])
+  }, [dispatch, reduxAuth])
 
   return <>{children}</>
 }

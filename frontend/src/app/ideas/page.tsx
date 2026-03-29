@@ -13,14 +13,17 @@ import {
   MessageSquare, 
   TrendingUp,
   Filter,
-  Search
+  Search,
+  Sparkles,
+  Map
 } from 'lucide-react'
 import { formatRelativeTime, IDEA_CATEGORIES, IDEA_STAGES } from '@/lib/utils'
-import { Sidebar } from '@/components/sidebar'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 
 export default function IdeasPage() {
   const dispatch = useDispatch<AppDispatch>()
+  const router = useRouter()
   const { ideas, loading, pagination } = useSelector((state: RootState) => state.ideas)
   const { user } = useSelector((state: RootState) => state.auth)
   
@@ -56,8 +59,7 @@ export default function IdeasPage() {
   }
 
   return (
-    <Sidebar>
-      <div className="bg-gray-50 dark:bg-business-900 min-h-full">
+    <div className="bg-gray-50 dark:bg-business-900 min-h-full">
         {/* Header */}
         <div className="bg-white dark:bg-business-800 border-b border-gray-200 dark:border-business-700 shadow-sm">
           <div className="container mx-auto px-6 py-8">
@@ -209,6 +211,32 @@ export default function IdeasPage() {
                           View Details
                         </div>
                       </div>
+                      <div className="mt-3 flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 text-indigo-600 border-indigo-200 hover:bg-indigo-50 dark:text-indigo-400 dark:border-indigo-800 dark:hover:bg-indigo-900/20"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/validate-idea?ideaId=${idea.id}`)
+                          }}
+                        >
+                          <Sparkles className="w-3.5 h-3.5 mr-1.5" />
+                          Validate
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex-1 text-emerald-600 border-emerald-200 hover:bg-emerald-50 dark:text-emerald-400 dark:border-emerald-800 dark:hover:bg-emerald-900/20"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            router.push(`/roadmap?ideaId=${idea.id}`)
+                          }}
+                        >
+                          <Map className="w-3.5 h-3.5 mr-1.5" />
+                          Roadmap
+                        </Button>
+                      </div>
                     </CardContent>
                   </Card>
                 ))}
@@ -255,7 +283,6 @@ export default function IdeasPage() {
           />
         )}
       </div>
-    </Sidebar>
   )
 }
 

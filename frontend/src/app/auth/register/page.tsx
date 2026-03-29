@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '@/redux/store'
-import { registerUser } from '@/redux/slices/authSlice'
+import { registerUser, googleLogin } from '@/redux/slices/authSlice'
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
@@ -18,14 +19,13 @@ export default function RegisterPage() {
     role: 'ENTREPRENEUR' as 'ENTREPRENEUR' | 'MENTOR'
   })
   const [loading, setLoading] = useState(false)
-  
+
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-
     try {
       await dispatch(registerUser(formData)).unwrap()
       toast.success('Registration successful!')
@@ -38,20 +38,24 @@ export default function RegisterPage() {
   }
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    setFormData(prev => ({
-      ...prev,
-      [e.target.name]: e.target.value
-    }))
+    setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) return
+    try {
+      await dispatch(googleLogin({ credential: credentialResponse.credential, role: formData.role })).unwrap()
+      toast.success('Registration successful!')
+      router.push('/dashboard')
+    } catch (error: any) {
+      toast.error(error || 'Google sign-up failed')
+    }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-navy-900 p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
-          {/* <div className="w-16 h-16 bg-gradient-to-br from-navy-600 to-navy-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-white font-bold text-xl">SL</span>
-          </div> */}
           <h1 className="text-2xl font-bold bg-gradient-to-r from-navy-600 to-navy-700 bg-clip-text text-transparent">
             StartupLaunch
           </h1>
@@ -65,76 +69,65 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 pb-8">
+            {/* Role selector shown above Google button so it applies to Google sign-up too */}
+            <div className="mb-4">
+              <label htmlFor="role-google" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                I am a...
+              </label>
+              <select
+                id="role-google"
+                name="role"
+                value={formData.role}
+                onChange={handleChange}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-navy-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent dark:bg-navy-700 dark:text-lightTeal-300 transition-all"
+              >
+                <option value="ENTREPRENEUR">Entrepreneur</option>
+                <option value="MENTOR">Mentor</option>
+              </select>
+            </div>
+
+            {/* Google Sign Up */}
+            <div className="flex justify-center mb-6">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => toast.error('Google sign-up failed')}
+                width="368"
+                text="signup_with"
+                shape="rectangular"
+              />
+            </div>
+
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-navy-600" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-navy-800 text-gray-500">or</span>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Full Name
-                </label>
-                <input
-                  id="name"
-                  name="name"
-                  type="text"
-                  value={formData.name}
-                  onChange={handleChange}
+                <label htmlFor="name" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Full Name</label>
+                <input id="name" name="name" type="text" value={formData.name} onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-navy-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent dark:bg-navy-700 dark:text-lightTeal-300 transition-all"
-                  placeholder="Enter your full name"
-                  required
-                />
+                  placeholder="Enter your full name" required />
               </div>
-
               <div>
-                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Email Address
-                </label>
-                <input
-                  id="email"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
+                <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Email Address</label>
+                <input id="email" name="email" type="email" value={formData.email} onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-navy-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent dark:bg-navy-700 dark:text-lightTeal-300 transition-all"
-                  placeholder="Enter your email"
-                  required
-                />
+                  placeholder="Enter your email" required />
               </div>
-              
               <div>
-                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  Password
-                </label>
-                <input
-                  id="password"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
+                <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">Password</label>
+                <input id="password" name="password" type="password" value={formData.password} onChange={handleChange}
                   className="w-full px-4 py-3 border border-gray-300 dark:border-navy-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent dark:bg-navy-700 dark:text-lightTeal-300 transition-all"
-                  placeholder="Create a password"
-                  required
-                />
+                  placeholder="Create a password" required />
               </div>
-
-              <div>
-                <label htmlFor="role" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                  I am a...
-                </label>
-                <select
-                  id="role"
-                  name="role"
-                  value={formData.role}
-                  onChange={handleChange}
-                  className="w-full px-4 py-3 border border-gray-300 dark:border-navy-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent dark:bg-navy-700 dark:text-lightTeal-300 transition-all"
-                >
-                  <option value="ENTREPRENEUR">Entrepreneur</option>
-                  <option value="MENTOR">Mentor</option>
-                </select>
-              </div>
-
-              <Button 
-                type="submit" 
+              <Button type="submit"
                 className="w-full bg-navy-600 hover:bg-navy-700 text-white py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all mt-6"
-                disabled={loading}
-              >
+                disabled={loading}>
                 {loading ? 'Creating account...' : 'Create Account'}
               </Button>
             </form>
@@ -142,9 +135,7 @@ export default function RegisterPage() {
             <div className="mt-8 text-center">
               <p className="text-gray-600 dark:text-gray-300">
                 Already have an account?{' '}
-                <Link href="/auth/login" className="text-navy-600 hover:text-navy-700 font-semibold">
-                  Sign in
-                </Link>
+                <Link href="/auth/login" className="text-navy-600 hover:text-navy-700 font-semibold">Sign in</Link>
               </p>
             </div>
           </CardContent>

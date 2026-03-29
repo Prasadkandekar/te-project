@@ -18,7 +18,6 @@ import {
   CheckCircle
 } from 'lucide-react'
 import { formatRelativeTime } from '@/lib/utils'
-import { Sidebar } from '@/components/sidebar'
 import toast from 'react-hot-toast'
 
 export default function CommunityPage() {
@@ -57,8 +56,7 @@ export default function CommunityPage() {
   }
 
   return (
-    <Sidebar>
-      <div className="bg-gray-50 dark:bg-business-900 min-h-full">
+    <div className="bg-gray-50 dark:bg-business-900 min-h-full">
         {/* Header */}
         <div className="bg-white dark:bg-business-800 border-b border-gray-200 dark:border-business-700 shadow-sm">
           <div className="container mx-auto px-6 py-8">
@@ -305,6 +303,5 @@ export default function CommunityPage() {
       </div>
 
       </div>
-    </Sidebar>
   )
 }

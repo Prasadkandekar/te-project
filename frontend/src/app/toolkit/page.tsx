@@ -7,7 +7,6 @@ import { fetchResources, downloadResource } from '@/redux/slices/resourcesSlice'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Sidebar } from '@/components/sidebar'
 import { 
   BookOpen, 
   Download, 
@@ -69,19 +68,16 @@ export default function ToolkitPage() {
 
   if (!user) {
     return (
-      <Sidebar>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Please log in to access the toolkit</h1>
-          </div>
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Please log in to access the toolkit</h1>
         </div>
-      </Sidebar>
+      </div>
     )
   }
 
   return (
-    <Sidebar>
-      <div className="bg-gray-50 dark:bg-business-900 min-h-full">
+    <div className="bg-gray-50 dark:bg-business-900 min-h-full">
         {/* Header */}
         <div className="bg-white dark:bg-business-800 border-b border-gray-200 dark:border-business-700 shadow-sm">
           <div className="container mx-auto px-6 py-8">
@@ -292,6 +288,5 @@ export default function ToolkitPage() {
           </div>
         </div>
       </div>
-    </Sidebar>
   )
 }

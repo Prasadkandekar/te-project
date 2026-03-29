@@ -7,7 +7,6 @@ import { fetchPitches, createPitch } from '@/redux/slices/pitchesSlice'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Sidebar } from '@/components/sidebar'
 import {
     Presentation,
     Plus,
@@ -49,19 +48,16 @@ export default function PitchesPage() {
 
     if (!user) {
         return (
-            <Sidebar>
-                <div className="flex items-center justify-center h-full">
-                    <div className="text-center">
-                        <h1 className="text-2xl font-bold mb-4">Please log in to view pitch decks</h1>
-                    </div>
+            <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                    <h1 className="text-2xl font-bold mb-4">Please log in to view pitch decks</h1>
                 </div>
-            </Sidebar>
+            </div>
         )
     }
 
     return (
-        <Sidebar>
-            <div className="bg-gray-50 dark:bg-navy-900 min-h-full">
+        <div className="bg-gray-50 dark:bg-navy-900 min-h-full">
                 {/* Header */}
                 <div className="bg-white dark:bg-navy-800 border-b border-lightTeal-200 dark:border-navy-700 shadow-sm">
                     <div className="container mx-auto px-6 py-8">
@@ -247,8 +243,7 @@ export default function PitchesPage() {
                         onSubmit={handleCreatePitch}
                     />
                 )}
-            </div>
-        </Sidebar>
+        </div>
     )
 }
 

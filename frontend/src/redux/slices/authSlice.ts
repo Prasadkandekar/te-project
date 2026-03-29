@@ -118,6 +118,21 @@ export const forgotPassword = createAsyncThunk(
   }
 );
 
+export const googleLogin = createAsyncThunk(
+  'auth/googleLogin',
+  async (data: { credential: string; role?: string }, { rejectWithValue }) => {
+    try {
+      const response = await authAPI.googleAuth(data);
+      const { user, token } = response.data.data;
+      setToken(token);
+      setUserToStorage(user);
+      return { user, token };
+    } catch (error: any) {
+      return rejectWithValue(error.response?.data?.message || 'Google authentication failed');
+    }
+  }
+);
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
@@ -184,8 +199,8 @@ const authSlice = createSlice({
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        state.isAuthenticated = false;
-        state.user = null;
+        // Don't clear auth on a failed refresh — the token may still be valid.
+        // The API interceptor already handles 401 by clearing the token and redirecting.
       })
       
       // Update profile
@@ -223,6 +238,23 @@ const authSlice = createSlice({
       .addCase(forgotPassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
+      })
+
+      // Google login
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.isAuthenticated = true;
+        state.error = null;
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        state.isAuthenticated = false;
       });
   },
 });

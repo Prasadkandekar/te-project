@@ -8,6 +8,8 @@ interface Booking {
   date: string;
   status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
   notes?: string;
+  roadmapId?: string;
+  roadmap?: { id: string; ideaId: string } | null;
   createdAt: string;
   updatedAt: string;
   mentor: {

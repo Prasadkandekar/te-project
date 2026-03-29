@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useDispatch } from 'react-redux'
 import { AppDispatch } from '@/redux/store'
-import { loginUser } from '@/redux/slices/authSlice'
+import { loginUser, googleLogin } from '@/redux/slices/authSlice'
+import { GoogleLogin, CredentialResponse } from '@react-oauth/google'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import Link from 'next/link'
@@ -14,46 +15,39 @@ export default function LoginPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
-  
+
   const router = useRouter()
   const dispatch = useDispatch<AppDispatch>()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-
     try {
       await dispatch(loginUser({ email, password })).unwrap()
       toast.success('Login successful!')
       router.push('/dashboard')
     } catch (error: any) {
-      console.error('Login error in component:', error)
       toast.error(error || 'Login failed')
     } finally {
       setLoading(false)
     }
   }
 
-  const testAPI = async () => {
+  const handleGoogleSuccess = async (credentialResponse: CredentialResponse) => {
+    if (!credentialResponse.credential) return
     try {
-      const response = await fetch('http://localhost:5000/health')
-      const data = await response.json()
-      console.log('API Test:', data)
-      toast.success('API is reachable!')
-    } catch (error) {
-      console.error('API Test Error:', error)
-      toast.error('API is not reachable!')
+      await dispatch(googleLogin({ credential: credentialResponse.credential })).unwrap()
+      toast.success('Login successful!')
+      router.push('/dashboard')
+    } catch (error: any) {
+      toast.error(error || 'Google login failed')
     }
   }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-navy-900 p-4">
       <div className="w-full max-w-md">
-        {/* Logo */}
         <div className="text-center mb-8">
-          {/* <div className="w-16 h-16 bg-gradient-to-br from-navy-600 to-navy-700 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-            <span className="text-white font-bold text-xl">SL</span>
-          </div> */}
           <h1 className="text-2xl font-bold bg-gradient-to-r from-navy-600 to-navy-700 bg-clip-text text-transparent">
             StartupLaunch
           </h1>
@@ -67,6 +61,26 @@ export default function LoginPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="px-8 pb-8">
+            {/* Google Sign In */}
+            <div className="flex justify-center mb-6">
+              <GoogleLogin
+                onSuccess={handleGoogleSuccess}
+                onError={() => toast.error('Google login failed')}
+                width="368"
+                text="signin_with"
+                shape="rectangular"
+              />
+            </div>
+
+            <div className="relative mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300 dark:border-navy-600" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white dark:bg-navy-800 text-gray-500">or</span>
+              </div>
+            </div>
+
             <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
@@ -82,7 +96,7 @@ export default function LoginPage() {
                   required
                 />
               </div>
-              
+
               <div>
                 <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
                   Password
@@ -98,22 +112,13 @@ export default function LoginPage() {
                 />
               </div>
 
-              <Button 
-                type="submit" 
+              <Button
+                type="submit"
                 className="w-full bg-navy-600 hover:bg-navy-700 text-white py-3 text-lg font-semibold shadow-lg hover:shadow-xl transition-all"
                 disabled={loading}
               >
                 {loading ? 'Signing in...' : 'Sign In'}
               </Button>
-{/*               
-              <Button 
-                type="button"
-                onClick={testAPI}
-                variant="outline"
-                className="w-full mt-2"
-              >
-                Test API Connection
-              </Button> */}
             </form>
 
             <div className="mt-8 text-center">

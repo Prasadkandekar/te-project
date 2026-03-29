@@ -1,3 +1,9 @@
+/**
+ * @deprecated This component has been replaced by bottom-nav.tsx
+ * The top navigation has been replaced with a modern bottom navigation bar.
+ * Please use the BottomNav component from @/components/bottom-nav instead.
+ */
+
 'use client'
 
 import { useState } from 'react'
@@ -60,9 +66,11 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center space-x-3">
-            <div className="w-8 h-8 bg-gradient-to-br from-navy-600 to-navy-500 rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">SL</span>
-            </div>
+            <img 
+              src="/logo/startup-launch-logo.png" 
+              alt="StartupLaunch Logo" 
+              className="w-8 h-8 object-contain"
+            />
             <span className="text-xl font-bold bg-gradient-to-r from-navy-600 to-navy-500 bg-clip-text text-transparent">
               StartupLaunch
             </span>

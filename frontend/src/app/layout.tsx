@@ -3,6 +3,9 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Providers } from '@/components/providers'
 import { Toaster } from 'react-hot-toast'
+import { BottomNav } from '@/components/bottom-nav'
+import { TopNav } from '@/components/top-nav'
+import { AuthLayoutWrapper } from '@/components/auth-layout-wrapper'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -31,7 +34,11 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body className={inter.className}>
         <Providers>
-          {children}
+          <TopNav />
+          <AuthLayoutWrapper>
+            {children}
+          </AuthLayoutWrapper>
+          <BottomNav />
           <Toaster
             position="top-right"
             toastOptions={{

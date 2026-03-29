@@ -1,3 +1,9 @@
+/**
+ * @deprecated This component has been replaced by bottom-nav.tsx
+ * The sidebar navigation has been replaced with a modern bottom navigation bar.
+ * Please use the BottomNav component from @/components/bottom-nav instead.
+ */
+
 'use client'
 
 import { useState } from 'react'
@@ -14,14 +20,16 @@ import {
   BookOpen, 
   Calendar,
   Presentation,
-  // CheckCircle,
+  CheckCircle,
+  Map,
   Bell,
   User,
   LogOut,
   Menu,
   X,
   ChevronLeft,
-  ChevronRight
+  ChevronRight,
+  Shield
 } from 'lucide-react'
 import Link from 'next/link'
 import toast from 'react-hot-toast'
@@ -29,7 +37,10 @@ import toast from 'react-hot-toast'
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: Home },
   { name: 'Ideas', href: '/ideas', icon: Lightbulb },
-  // { name: 'Validate Idea', href: '/validate-idea', icon: CheckCircle },
+  { name: 'Validate Idea', href: '/validate-idea', icon: CheckCircle },
+  { name: 'Roadmap', href: '/roadmap', icon: Map },
+  { name: 'Case Studies', href: '/case-studies', icon: BookOpen },
+  { name: 'Startup Register', href: '/startup-register', icon: Shield },
   { name: 'Community', href: '/community', icon: Users },
   { name: 'Mentorship', href: '/mentorship', icon: Calendar },
   { name: 'Pitches', href: '/pitches', icon: Presentation },

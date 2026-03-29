@@ -8,7 +8,6 @@ import { fetchUsers } from '@/redux/slices/connectionsSlice'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
-import { Sidebar } from '@/components/sidebar'
 import { 
   Calendar, 
   Clock, 
@@ -18,10 +17,12 @@ import {
   Plus,
   CheckCircle,
   XCircle,
-  AlertCircle
+  AlertCircle,
+  Map
 } from 'lucide-react'
 import { formatRelativeTime, formatDateTime } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import Link from 'next/link'
 
 export default function MentorshipPage() {
   const dispatch = useDispatch<AppDispatch>()
@@ -56,21 +57,18 @@ export default function MentorshipPage() {
 
   if (!user) {
     return (
-      <Sidebar>
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <h1 className="text-2xl font-bold mb-4">Please log in to access mentorship</h1>
-          </div>
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <h1 className="text-2xl font-bold mb-4">Please log in to access mentorship</h1>
         </div>
-      </Sidebar>
+      </div>
     )
   }
 
   const mentors = users.filter(u => u.role === 'MENTOR')
 
   return (
-    <Sidebar>
-      <div className="bg-gray-50 dark:bg-business-900 min-h-full">
+    <div className="bg-gray-50 dark:bg-business-900 min-h-full">
         {/* Header */}
         <div className="bg-white dark:bg-business-800 border-b border-gray-200 dark:border-business-700 shadow-sm">
           <div className="container mx-auto px-6 py-8">
@@ -185,6 +183,15 @@ export default function MentorshipPage() {
                               {booking.status === 'CANCELLED' && <XCircle className="w-3 h-3 mr-1" />}
                               {booking.status}
                             </Badge>
+                            {booking.roadmap && (
+                              <Link
+                                href={`/roadmap?ideaId=${booking.roadmap.ideaId}`}
+                                className="flex items-center text-sm text-navy-600 dark:text-navy-400 hover:underline"
+                              >
+                                <Map className="w-4 h-4 mr-1" />
+                                View Roadmap
+                              </Link>
+                            )}
                           </div>
                         </div>
                       </CardContent>
@@ -295,7 +302,6 @@ export default function MentorshipPage() {
           />
         )}
       </div>
-    </Sidebar>
   )
 }
 
