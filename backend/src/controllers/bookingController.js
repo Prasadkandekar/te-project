@@ -68,7 +68,7 @@ const getMentorSlots = async (req, res) => {
 // Create booking
 const createBooking = async (req, res) => {
   try {
-    const { mentorId, date, notes } = req.body;
+    const { mentorId, date, notes, roadmapId } = req.body;
 
     // Check if mentor exists
     const mentor = await prisma.user.findUnique({
@@ -99,13 +99,22 @@ const createBooking = async (req, res) => {
       });
     }
 
+    // Validate roadmapId if provided
+    if (roadmapId) {
+      const roadmap = await prisma.roadmap.findUnique({ where: { id: roadmapId } });
+      if (!roadmap) {
+        return res.status(404).json({ success: false, message: 'Roadmap not found' });
+      }
+    }
+
     const booking = await prisma.booking.create({
       data: {
         mentorId,
         menteeId: req.user.id,
         date: new Date(date),
         notes,
-        status: 'PENDING'
+        status: 'PENDING',
+        ...(roadmapId && { roadmapId })
       },
       include: {
         mentor: {
@@ -113,7 +122,8 @@ const createBooking = async (req, res) => {
         },
         mentee: {
           select: { id: true, name: true, email: true }
-        }
+        },
+        roadmap: true
       }
     });
 
@@ -176,6 +186,9 @@ const getBookings = async (req, res) => {
           },
           mentee: {
             select: { id: true, name: true, avatar: true }
+          },
+          roadmap: {
+            select: { id: true, ideaId: true }
           }
         }
       }),
@@ -210,7 +223,7 @@ const getBookings = async (req, res) => {
 const updateBooking = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, roadmapId } = req.body;
 
     const existingBooking = await prisma.booking.findUnique({
       where: { id },
@@ -235,12 +248,24 @@ const updateBooking = async (req, res) => {
       });
     }
 
+    // Validate roadmapId if provided
+    if (roadmapId) {
+      const roadmap = await prisma.roadmap.findUnique({ where: { id: roadmapId } });
+      if (!roadmap) {
+        return res.status(404).json({ success: false, message: 'Roadmap not found' });
+      }
+    }
+
     const updatedBooking = await prisma.booking.update({
       where: { id },
-      data: { status },
+      data: {
+        status,
+        ...(roadmapId !== undefined && { roadmapId: roadmapId || null })
+      },
       include: {
         mentor: { select: { id: true, name: true, avatar: true } },
-        mentee: { select: { id: true, name: true, avatar: true } }
+        mentee: { select: { id: true, name: true, avatar: true } },
+        roadmap: { select: { id: true, ideaId: true } }
       }
     });
 

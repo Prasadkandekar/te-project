@@ -7,6 +7,7 @@ const {
   getMe,
   updateProfile,
   forgotPassword,
+  googleAuth,
 } = require('../controllers/authController');
 const { authMiddleware } = require('../middlewares/authMiddleware');
 const { validate, registerSchema, loginSchema, forgotPasswordSchema, updateProfileSchema } = require('../utils/validateInputs');
@@ -15,6 +16,7 @@ const { validate, registerSchema, loginSchema, forgotPasswordSchema, updateProfi
 router.post('/register', validate(registerSchema), register);
 router.post('/login', validate(loginSchema), login);
 router.post('/forgot-password', validate(forgotPasswordSchema), forgotPassword);
+router.post('/google', googleAuth);
 
 // Protected routes
 router.post('/logout', authMiddleware, logout);

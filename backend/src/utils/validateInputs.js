@@ -64,16 +64,19 @@ const updateProfileSchema = z.object({
   location: z.string().max(100).optional(),
 });
 
-// Idea validation schema - TEMPORARILY DISABLED
-/*
+// Idea validation schema
 const validateIdeaSchema = z.object({
-  ideaName: z.string().min(3, 'Idea name must be at least 3 characters').max(100),
-  description: z.string().min(20, 'Description must be at least 20 characters').max(2000),
-  targetMarket: z.string().min(10, 'Target market description must be at least 10 characters').max(1000),
-  uniqueValue: z.string().min(10, 'Unique value proposition must be at least 10 characters').max(1000),
-  businessModel: z.string().min(10, 'Business model must be at least 10 characters').max(1000),
+  ideaId: z.string().uuid('ideaId must be a valid UUID'),
 });
-*/
+
+// Roadmap schemas
+const generateRoadmapSchema = z.object({
+  ideaId: z.string().uuid('ideaId must be a valid UUID'),
+});
+
+const updateMilestoneSchema = z.object({
+  completed: z.boolean(),
+});
 
 // Validation middleware
 const validate = (schema) => {
@@ -108,6 +111,8 @@ module.exports = {
   updateConnectionSchema,
   createResourceSchema,
   updateProfileSchema,
-  // validateIdeaSchema, // Temporarily disabled
+  validateIdeaSchema,
+  generateRoadmapSchema,
+  updateMilestoneSchema,
   validate,
 };

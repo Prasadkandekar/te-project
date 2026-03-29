@@ -13,6 +13,9 @@ const bookingRoutes = require("./routes/bookingRoutes");
 const pitchRoutes = require("./routes/pitchRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
 const ideaValidationRoutes = require("./routes/ideaValidationRoutes");
+const roadmapRoutes = require("./routes/roadmapRoutes");
+const caseStudyRoutes = require("./routes/caseStudyRoutes");
+const dashboardRoutes = require("./routes/dashboardRoutes");
 const { errorHandler, notFoundHandler } = require("./middlewares/errorHandler");
 
 const app = express();
@@ -41,7 +44,7 @@ app.use(helmet({
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 300, // Increased from 100 to 300 to accommodate dashboard data fetching
   message: {
     success: false,
     message: "Too many requests from this IP, please try again later.",
@@ -107,6 +110,9 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/pitches", pitchRoutes);
 app.use("/api/notifications", notificationRoutes);
 app.use("/api/validate-idea", ideaValidationRoutes);
+app.use("/api/roadmap", roadmapRoutes);
+app.use("/api/case-studies", caseStudyRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 app.get("/api", (req, res) => {
   res.json({

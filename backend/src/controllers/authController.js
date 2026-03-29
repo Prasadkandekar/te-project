@@ -1,7 +1,10 @@
 const bcrypt = require('bcryptjs');
+const { OAuth2Client } = require('google-auth-library');
 const prisma = require('../config/db');
 const { generateToken, setTokenCookie, clearTokenCookie } = require('../utils/generateToken');
 const { sendEmail, emailTemplates } = require('../utils/sendEmail');
+
+const googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
 // Register user
 const register = async (req, res) => {
@@ -277,6 +280,63 @@ const forgotPassword = async (req, res) => {
   }
 };
 
+// Google OAuth
+const googleAuth = async (req, res) => {
+  try {
+    const { credential, role = 'ENTREPRENEUR' } = req.body;
+
+    if (!credential) {
+      return res.status(400).json({ success: false, message: 'Google credential is required' });
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: credential,
+      audience: process.env.GOOGLE_CLIENT_ID,
+    });
+
+    const payload = ticket.getPayload();
+    const { sub: googleId, email, name, picture } = payload;
+
+    await prisma.$connect();
+
+    // Find or create user
+    let user = await prisma.user.findFirst({
+      where: { OR: [{ googleId }, { email }] },
+    });
+
+    if (user) {
+      // Link googleId if signing in via Google for the first time
+      if (!user.googleId) {
+        user = await prisma.user.update({
+          where: { id: user.id },
+          data: { googleId, avatar: user.avatar || picture },
+          select: { id: true, name: true, email: true, role: true, bio: true, skills: true, location: true, avatar: true, verified: true, createdAt: true },
+        });
+      } else {
+        const { password: _, ...rest } = user;
+        user = rest;
+      }
+    } else {
+      // New user via Google
+      user = await prisma.user.create({
+        data: { name, email, googleId, avatar: picture, role, skills: [], verified: true },
+        select: { id: true, name: true, email: true, role: true, bio: true, skills: true, location: true, avatar: true, verified: true, createdAt: true },
+      });
+
+      const emailTemplate = emailTemplates.welcome(user.name);
+      await sendEmail(user.email, emailTemplate.subject, emailTemplate.html).catch(() => {});
+    }
+
+    const token = generateToken(user.id);
+    setTokenCookie(res, token);
+
+    res.json({ success: true, message: 'Google authentication successful', data: { user, token } });
+  } catch (error) {
+    console.error('Google auth error:', error);
+    res.status(500).json({ success: false, message: 'Google authentication failed' });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -284,4 +344,5 @@ module.exports = {
   getMe,
   updateProfile,
   forgotPassword,
+  googleAuth,
 };

@@ -6,15 +6,17 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
 }
 
 model User {
   id        String   @id @default(uuid())
   email     String   @unique
-  password  String
+  password  String?
   name      String
+  googleId  String?  @unique
   role      Role     @default(ENTREPRENEUR)
   bio       String?
   skills    String[] // Array of skills
@@ -51,8 +53,11 @@ model Idea {
   updatedAt   DateTime @updatedAt
 
   // Relations
-  user      User       @relation(fields: [createdBy], references: [id], onDelete: Cascade)
-  feedbacks Feedback[]
+  user        User             @relation(fields: [createdBy], references: [id], onDelete: Cascade)
+  feedbacks   Feedback[]
+  validations IdeaValidation[]
+  roadmap     Roadmap?
+  caseStudies CaseStudy[]
 
   @@map("ideas")
 }
@@ -113,12 +118,14 @@ model Booking {
   date      DateTime
   status    BookingStatus @default(PENDING)
   notes     String?
+  roadmapId String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
   // Relations
-  mentor User @relation("MentorBookings", fields: [mentorId], references: [id], onDelete: Cascade)
-  mentee User @relation("MenteeBookings", fields: [menteeId], references: [id], onDelete: Cascade)
+  mentor  User     @relation("MentorBookings", fields: [mentorId], references: [id], onDelete: Cascade)
+  mentee  User     @relation("MenteeBookings", fields: [menteeId], references: [id], onDelete: Cascade)
+  roadmap Roadmap? @relation(fields: [roadmapId], references: [id])
 
   @@map("bookings")
 }
@@ -153,6 +160,78 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
+}
+
+model IdeaValidation {
+  id               String   @id @default(uuid())
+  ideaId           String
+  score            Int      // 0–100
+  pivotRecommended Boolean
+  pivotSuggestions String[]
+  dimensionScores  Json     // { marketDemand, competitiveGap, executionFeasibility, revenuePotential, timingTrends }
+  swot             Json     // { strengths[], weaknesses[], opportunities[], threats[] }
+  competitors      Json     // [{ name, positioningNote, threatLevel }]
+  persona          Json     // { demographics, painPoints[], willingnessToPay, channels[] }
+  checklist        String[]
+  createdAt        DateTime @default(now())
+
+  idea Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@map("idea_validations")
+}
+
+model Roadmap {
+  id        String   @id @default(uuid())
+  ideaId    String   @unique // one roadmap per idea
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  idea     Idea      @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+  phases   Phase[]
+  bookings Booking[]
+
+  @@map("roadmaps")
+}
+
+model Phase {
+  id               String   @id @default(uuid())
+  roadmapId        String
+  phaseNumber      Int      // 1–4
+  title            String
+  weekRange        String
+  goal             String
+  successMetrics   String[]
+  recommendedTools String[]
+  createdAt        DateTime @default(now())
+
+  roadmap    Roadmap     @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+  milestones Milestone[]
+
+  @@map("phases")
+}
+
+model Milestone {
+  id          String    @id @default(uuid())
+  phaseId     String
+  title       String
+  completed   Boolean   @default(false)
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  phase Phase @relation(fields: [phaseId], references: [id], onDelete: Cascade)
+
+  @@map("milestones")
+}
+
+model CaseStudy {
+  id          String   @id @default(uuid())
+  ideaId      String
+  competitors Json     // [{ name, story, timeline: [{ year, event, impact }], keyLessons[], currentStatus }]
+  createdAt   DateTime @default(now())
+
+  idea Idea @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@map("case_studies")
 }
 
 enum Role {
